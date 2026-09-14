@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vectormint"
+version = "1.8.0"
+description = "Official Python client for the VectorMint credit-card intelligence API"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "VectorMint" }]
+keywords = ["credit-cards", "api", "rewards", "fintech", "vectormint"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+Documentation = "https://www.vectormint.app/docs/sdks"
+Source = "https://github.com/vectormint/vectormint-sdk-python"
+
+[tool.setuptools.packages.find]
+where = ["src"]
