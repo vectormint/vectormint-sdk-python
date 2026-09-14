@@ -91,7 +91,7 @@ def py_method(operation: dict[str, Any]) -> str:
 def load_spec() -> dict[str, Any]:
     if SPEC_FILE:
         return json.loads(Path(SPEC_FILE).read_text())
-    req = Request(SPEC_URL, headers={"Accept": "application/json"})
+    req = Request(SPEC_URL, headers={"Accept": "application/json", "User-Agent": "VectorMint-Python-SDK-Generator/1.8"})
     with urlopen(req, timeout=30) as response:
         return json.load(response)
 
