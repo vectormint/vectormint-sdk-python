@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  regenerate-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regenerate from production OpenAPI
+        run: python scripts/generate.py
+      - name: Fail on generated-code drift
+        run: git diff --exit-code -- src/vectormint/client.py
+      - run: python -m py_compile src/vectormint/__init__.py src/vectormint/client.py
+      - run: python -m pip install .
+
+  git-install-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: regenerate-and-build
+    runs-on: ubuntu-latest
+    env:
+      VECTORMINT_API_KEY: ${{ secrets.VECTORMINT_SDK_SMOKE_API_KEY }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install from the documented GitHub URL
+        run: |
+          python -m venv /tmp/vectormint-py-smoke
+          /tmp/vectormint-py-smoke/bin/python -m pip install --upgrade pip
+          /tmp/vectormint-py-smoke/bin/pip install git+https://github.com/vectormint/vectormint-sdk-python
+      - name: Authenticated search_cards smoke when throwaway key is configured
+        run: |
+          /tmp/vectormint-py-smoke/bin/python - <<'PY'
+          import os
+          from vectormint import VectorMint
+
+          key = os.environ.get("VECTORMINT_API_KEY")
+          if not key:
+              print("Authenticated live smoke skipped: VECTORMINT_SDK_SMOKE_API_KEY is not configured.")
+              raise SystemExit(0)
+
+          result = VectorMint(api_key=key).search_cards(q="chase", limit=1)
+          if not isinstance(result, dict) or not isinstance(result.get("data"), list):
+              raise RuntimeError("search_cards returned an unexpected payload")
+          print(f"Authenticated search_cards smoke passed with {len(result['data'])} result(s).")
+          PY
