@@ -74,7 +74,7 @@ class VectorMint:
         if pairs:
             url += "?" + urlencode(pairs, doseq=True)
 
-        headers = {"Accept": "application/json"}
+        headers = {"Accept": "application/json", "User-Agent": "vectormint-python/1.8.0"}
         if self._auth_mode == "x-api-key":
             headers["x-api-key"] = self._api_key
         else:
